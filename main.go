@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
@@ -9,8 +10,8 @@ import (
 
 
 type Manager struct {
-	EmployeeID int      `pg:"employee_id"`
-	ManagerID  int      `pg:"manager_id"`
+	EmployeeID uint64  `pg:"employee_id"`
+	ManagerID  uint64  `pg:"manager_id"`
 }
 
 func main() {
@@ -24,19 +25,24 @@ func main() {
 		
 	}
 
-	adjList := make(map[int]int)
+	adjList := make(map[uint64][]uint64)
 	for _, manager := range managers {
-		adjList[manager.EmployeeID] = manager.ManagerID
+		adjList[manager.EmployeeID] = append(adjList[manager.EmployeeID], manager.ManagerID)
 	}
 
-	visited := make(map[int]bool)
+	visited := make(map[uint64]bool)
 
-	var empID,managerID int
+	var empID,managerID uint64
 
 	fmt.Println("Enter the empID :")
 	fmt.Scanln(&empID)
 	fmt.Println("Enter the managerID :")
 	fmt.Scanln(&managerID)
+
+	if !slices.Contains(adjList[empID],managerID) {
+		fmt.Printf("%d is not the Manager of Employee : %d \n",managerID,empID)
+		return
+	}
 
 	isCycleDetected := dfsDetectCycle(empID,managerID,adjList,visited)
 
@@ -66,11 +72,7 @@ func loadDatabase() *pg.DB {
 	return db
 }
 
-func dfsDetectCycle(empID int , managerID int, adjList map[int]int, visited map[int]bool) bool {
-
-	if adjList[managerID] == 0{
-		return false
-	}
+func dfsDetectCycle(empID uint64 , managerID uint64, adjList map[uint64][]uint64, visited map[uint64]bool) bool {
 
 	if visited[managerID] {
 		return true
@@ -79,5 +81,11 @@ func dfsDetectCycle(empID int , managerID int, adjList map[int]int, visited map[
 	visited[empID] = true;
 	visited[managerID] = true;
 
-	return dfsDetectCycle(managerID,adjList[managerID],adjList,visited)
+	for _, manager := range adjList[managerID] {
+		if dfsDetectCycle(managerID, manager,adjList,visited) {
+			return true
+		}
+	}
+
+	return false
 }

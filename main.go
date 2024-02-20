@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"slices"
+	//"slices"
 
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
@@ -39,10 +39,12 @@ func main() {
 	fmt.Println("Enter the managerID :")
 	fmt.Scanln(&managerID)
 
-	if !slices.Contains(adjList[empID],managerID) {
-		fmt.Printf("%d is not the Manager of Employee : %d \n",managerID,empID)
-		return
-	}
+	// if !slices.Contains(adjList[empID],managerID) {
+	// 	fmt.Printf("%d is not the Manager of Employee : %d \n",managerID,empID)
+	// 	return
+	// }
+
+	adjList[empID]  = append(adjList[empID], managerID)
 
 	isCycleDetected := dfsDetectCycle(empID,managerID,adjList,visited)
 
